@@ -43,7 +43,7 @@ contract SupportsInterfaceWithLookup is ERC165 {
     * @dev private method for registering an interface
     */
     function _registerInterface(bytes4 _interfaceId) internal {
-        require(_interfaceId != 0xffffffff);
+        require(_interfaceId != 0xffffffff, "Interface cannot be 0xffffffff.");
         supportedInterfaces[_interfaceId] = true;
     }
 }

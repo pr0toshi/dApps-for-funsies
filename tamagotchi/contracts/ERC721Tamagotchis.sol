@@ -29,23 +29,6 @@ contract ERC721Tamagotchis is SupportsInterfaceWithLookup, ERC721BasicToken, ERC
       Dead
     }
 
-    // uint48 age;
-    // uint48 birthBlock;
-    // uint48 lastInteraction;
-    // uint16 happiness;
-    // uint8 state;
-    // bool exists;
-
-    /*
-     *  Splitting up the Tama stats into a single uint256 int
-     *  Bits 0 from 47 = age
-     *  Bits 48 from 95 = birth
-     *  Bits 96 from 143 = lastInteraction
-     *  Bits 144 from 159 = happiness
-     *  Bits 160 from 167 = state
-     *  Bit 168 = exists
-     */
-
     // Array with all tama ids, used for enumeration
     uint256[] internal allTokens;
 
@@ -58,11 +41,20 @@ contract ERC721Tamagotchis is SupportsInterfaceWithLookup, ERC721BasicToken, ERC
     // Mapping from tama id to position in the allTokens array
     mapping(uint256 => uint256) internal allTokensIndex;
 
+    /*
+     *  Splitting up the Tama stats into a single uint256 int
+     *  Bits 0 from 47 = age
+     *  Bits 48 from 95 = birth
+     *  Bits 96 from 143 = lastInteraction
+     *  Bits 144 from 159 = happiness
+     *  Bits 160 from 167 = state
+     *  Bit 168 = exists
+     */
     // Optional mapping from id to tama stats encoded in uint256
     mapping(uint256 => uint256) internal tamaStats;
 
     modifier tamaIDExists(uint256 _tamaId) {
-        require(exists(_tamaId));
+        require(exists(_tamaId), "TamaID entered does not exist.");
         _;
     }
 
@@ -98,7 +90,12 @@ contract ERC721Tamagotchis is SupportsInterfaceWithLookup, ERC721BasicToken, ERC
     * Throws if the tama ID does not exist. May return an empty string.
     * @param _tamaId uint256 ID of the tama to query
     */
-    function tamaStatsByID(uint256 _tamaId) tamaIDExists(_tamaId) public view returns (uint256) {
+    function tamaStatsByID(uint256 _tamaId)
+        public
+        view
+        tamaIDExists(_tamaId)
+        returns (uint256)
+    {
         return tamaStats[_tamaId];
     }
 
@@ -107,7 +104,12 @@ contract ERC721Tamagotchis is SupportsInterfaceWithLookup, ERC721BasicToken, ERC
     * Throws if the tama ID does not exist. May return an empty string.
     * @param _tamaId uint256 ID of the tama to query
     */
-    function tamaAgeByID(uint256 _tamaId) tamaIDExists(_tamaId) public view returns (uint256) {
+    function tamaAgeByID(uint256 _tamaId)
+        public
+        view
+        tamaIDExists(_tamaId)
+        returns (uint256)
+    {
         return uint256(uint48(tamaStats[_tamaId]));
     }
 
@@ -125,7 +127,12 @@ contract ERC721Tamagotchis is SupportsInterfaceWithLookup, ERC721BasicToken, ERC
     * Throws if the tama ID does not exist. May return an empty string.
     * @param _tamaId uint256 ID of the tama to query
     */
-    function tamaBirthBlockByID(uint256 _tamaId) tamaIDExists(_tamaId) public view returns (uint256) {
+    function tamaBirthBlockByID(uint256 _tamaId)
+        public
+        view
+        tamaIDExists(_tamaId)
+        returns (uint256)
+    {
         return uint256(uint48(tamaStats[_tamaId]>>48));
     }
 
@@ -134,7 +141,12 @@ contract ERC721Tamagotchis is SupportsInterfaceWithLookup, ERC721BasicToken, ERC
     * Throws if the tama ID does not exist. May return an empty string.
     * @param _tamaId uint256 ID of the tama to query
     */
-    function tamaLastInteractionByID(uint256 _tamaId) tamaIDExists(_tamaId) public view returns (uint256) {
+    function tamaLastInteractionByID(uint256 _tamaId)
+        public
+        view
+        tamaIDExists(_tamaId)
+        returns (uint256)
+    {
         return uint256(uint48(tamaStats[_tamaId]>>96));
     }
 
@@ -143,7 +155,12 @@ contract ERC721Tamagotchis is SupportsInterfaceWithLookup, ERC721BasicToken, ERC
     * Throws if the tama ID does not exist. May return an empty string.
     * @param _tamaId uint256 ID of the tama to query
     */
-    function tamaHappinessByID(uint256 _tamaId) tamaIDExists(_tamaId) public view returns (uint256) {
+    function tamaHappinessByID(uint256 _tamaId)
+        public
+        view
+        tamaIDExists(_tamaId)
+        returns (uint256)
+    {
         return uint256(uint16(tamaStats[_tamaId]>>144));
     }
 
@@ -152,7 +169,12 @@ contract ERC721Tamagotchis is SupportsInterfaceWithLookup, ERC721BasicToken, ERC
     * Throws if the tama ID does not exist. May return an empty string.
     * @param _tamaId uint256 ID of the tama to query
     */
-    function tamaStateByID(uint256 _tamaId) tamaIDExists(_tamaId) public view returns (TamaState) {
+    function tamaStateByID(uint256 _tamaId)
+        public
+        view
+        tamaIDExists(_tamaId)
+        returns (TamaState)
+    {
         return TamaState(uint8(tamaStats[_tamaId]>>160));
     }
 
@@ -160,9 +182,9 @@ contract ERC721Tamagotchis is SupportsInterfaceWithLookup, ERC721BasicToken, ERC
     * @dev Checks into the tama's house
     * Throws if the tama ID does not exist
     */
-    function checkInToTama(uint256 _tamaId) tamaIDExists(_tamaId) public {
+    function checkInToTama(uint256 _tamaId) public tamaIDExists(_tamaId) {
         uint256 tama = tamaStats[_tamaId];
-        require(TamaState(tamaState(tama)) != TamaState.Dead);
+        require(TamaState(tamaState(tama)) != TamaState.Dead, "Dead Tamas cannot be fed.");
         // require(TamaState(tamaState(tama)) != TamaState.Egg);
         uint256 clean = uint256(uint48(tama>>48))<<48 | calcHappiness(tama)<<144 | tama>>160<<160;
         tamaStats[_tamaId] = clean | block.number<<96 | calcTamaAge(tamaAge(tama) | uint256(uint48(tama>>96))<<96 | clean);
@@ -194,7 +216,7 @@ contract ERC721Tamagotchis is SupportsInterfaceWithLookup, ERC721BasicToken, ERC
         if (maxHappy <= decay) {
             return 0;
         } else if (maxHappy >= 140) {
-            return 140;
+            return 200;
         }
         return maxHappy - decay;
     }
@@ -204,7 +226,7 @@ contract ERC721Tamagotchis is SupportsInterfaceWithLookup, ERC721BasicToken, ERC
     *
     */
     function createTama(address _to, uint256 _tokenID) public payable {
-        require(msg.value == purchaseAmount, "Not enough ETH sent.");
+        require(msg.value >= purchaseAmount, "Not enough ETH sent.");
         _mint(_to, _tokenID);
         _initializeTama(_tokenID);
     }
@@ -215,7 +237,7 @@ contract ERC721Tamagotchis is SupportsInterfaceWithLookup, ERC721BasicToken, ERC
     * @param _tokenID uint256 ID of the token to initialize
     */
     function _initializeTama(uint256 _tokenID) internal {
-        require(exists(_tokenID));
+        require(exists(_tokenID), "ID does not exist.");
         tamaStats[_tokenID] = 0 | block.number<<48 | block.number<<96 | 140<<144 | 0<<160;
     }
 
@@ -225,15 +247,12 @@ contract ERC721Tamagotchis is SupportsInterfaceWithLookup, ERC721BasicToken, ERC
     * @param _index uint256 representing the index to be accessed of the requested tokens list
     * @return uint256 token ID at the given index of the tokens list owned by the requested address
     */
-    function tokenOfOwnerByIndex(
-        address _owner,
-        uint256 _index
-    )
+    function tokenOfOwnerByIndex(address _owner, uint256 _index)
       public
       view
       returns (uint256)
     {
-        require(_index < balanceOf(_owner));
+        require(_index < balanceOf(_owner), "Out of bounds of owner's tokens.");
         return ownedTokens[_owner][_index];
     }
 
@@ -307,7 +326,7 @@ contract ERC721Tamagotchis is SupportsInterfaceWithLookup, ERC721BasicToken, ERC
     * @return uint256 token ID at the given index of the tokens list
     */
     function tokenByIndex(uint256 _index) public view returns (uint256) {
-        require(_index < totalSupply());
+        require(_index < totalSupply(), "Out of bounds of total supply.");
         return allTokens[_index];
     }
 

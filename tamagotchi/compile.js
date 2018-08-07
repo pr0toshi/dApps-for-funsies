@@ -31,7 +31,7 @@ const erc721ReceiverContractPath = path.resolve(__dirname, 'contracts', 'ERC721R
 const erc721ReceiverSource = fs.readFileSync(erc721ReceiverContractPath, 'utf8');
 
 console.log("Finding ERC721Token");
-const erc721TokenContractPath = path.resolve(__dirname, 'contracts', 'ERC721Token.sol');
+const erc721TokenContractPath = path.resolve(__dirname, 'contracts', 'ERC721Tamagotchis.sol');
 const erc721TokenSource = fs.readFileSync(erc721TokenContractPath, 'utf8');
 
 console.log("Finding SupportsInterfaceWithLookup");
@@ -46,7 +46,7 @@ const input = {
   'ERC721.sol':erc721Source,
   'ERC721Basic.sol':erc721BasicSource,
   'ERC721Receiver.sol':erc721ReceiverSource,
-  'ERC721Token.sol':erc721TokenSource,
+  'ERC721Tamagotchis.sol':erc721TokenSource,
   'ERC721BasicToken.sol':erc721BasicTokenSource,
 };
 
@@ -59,7 +59,7 @@ const erc721Basic = compiled.contracts['ERC721Basic.sol:ERC721Basic'];
 const erc721BasicToken = compiled.contracts['ERC721BasicToken.sol:ERC721BasicToken'];
 const erc721Receiver = compiled.contracts['ERC721Receiver.sol:ERC721Receiver'];
 const supportInterface = compiled.contracts['SupportsInterfaceWithLookup.sol:SupportsInterfaceWithLookup'];
-const erc721Token = compiled.contracts['ERC721Token.sol:ERC721Tamagotchis'];
+const erc721Token = compiled.contracts['ERC721Tamagotchis.sol:ERC721Tamagotchis'];
 
 module.exports = {
     erc165,

@@ -1,5 +1,6 @@
 pragma solidity ^0.4.24;
 
+
 import "./ERC721Basic.sol";
 import "./ERC721Receiver.sol";
 import "./SafeMath.sol";
@@ -36,7 +37,7 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
     * @param _tokenId uint256 ID of the token to validate its ownership belongs to msg.sender
     */
     modifier onlyOwnerOf(uint256 _tokenId) {
-        require(ownerOf(_tokenId) == msg.sender);
+        require(ownerOf(_tokenId) == msg.sender, "Sender is not owner.");
         _;
     }
 
@@ -45,7 +46,7 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
     * @param _tokenId uint256 ID of the token to validate
     */
     modifier canTransfer(uint256 _tokenId) {
-        require(isApprovedOrOwner(msg.sender, _tokenId));
+        require(isApprovedOrOwner(msg.sender, _tokenId), "Sender is not allowed to transfer.");
         _;
     }
 
@@ -61,7 +62,7 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
     * @return uint256 representing the amount owned by the passed address
     */
     function balanceOf(address _owner) public view returns (uint256) {
-        require(_owner != address(0));
+        require(_owner != address(0), "Owner cannot be 0x0.");
         return ownedTokensCount[_owner];
     }
 
@@ -72,7 +73,7 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
     */
     function ownerOf(uint256 _tokenId) public view returns (address) {
         address owner = tokenOwner[_tokenId];
-        require(owner != address(0));
+        require(owner != address(0), "Owner cannot be 0x0.");
         return owner;
     }
 
@@ -96,8 +97,8 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
     */
     function approve(address _to, uint256 _tokenId) public {
         address owner = ownerOf(_tokenId);
-        require(_to != owner);
-        require(msg.sender == owner || isApprovedForAll(owner, msg.sender));
+        require(_to != owner, "Cannot approve owner to send token.");
+        require(msg.sender == owner || isApprovedForAll(owner, msg.sender), "Sender must be approved.");
 
         tokenApprovals[_tokenId] = _to;
         emit Approval(owner, _to, _tokenId);
@@ -119,7 +120,7 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
     * @param _approved representing the status of the approval to be set
     */
     function setApprovalForAll(address _to, bool _approved) public {
-        require(_to != msg.sender);
+        require(_to != msg.sender, "Cannot approve yourself");
         operatorApprovals[msg.sender][_to] = _approved;
         emit ApprovalForAll(msg.sender, _to, _approved);
     }
@@ -130,10 +131,7 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
     * @param _operator operator address which you want to query the approval of
     * @return bool whether the given operator is approved by the given owner
     */
-    function isApprovedForAll(
-        address _owner,
-        address _operator
-    )
+    function isApprovedForAll(address _owner, address _operator)
       public
       view
       returns (bool)
@@ -157,8 +155,8 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
       public
       canTransfer(_tokenId)
     {
-        require(_from != address(0));
-        require(_to != address(0));
+        require(_from != address(0), "Cannot transfer from 0x0.");
+        require(_to != address(0), "Cannot transfer to 0x0.");
 
         clearApproval(_from, _tokenId);
         removeTokenFrom(_from, _tokenId);
@@ -214,7 +212,7 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
     {
         transferFrom(_from, _to, _tokenId);
         // solium-disable-next-line arg-overflow
-        require(checkAndCallSafeTransfer(_from, _to, _tokenId, _data));
+        require(checkAndCallSafeTransfer(_from, _to, _tokenId, _data), "Not allowed to safe transfer.");
     }
 
     /**
@@ -250,7 +248,7 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
     * @param _tokenId uint256 ID of the token to be minted by the msg.sender
     */
     function _mint(address _to, uint256 _tokenId) internal {
-        require(_to != address(0));
+        require(_to != address(0), "Cannot send to 0x0.");
         addTokenTo(_to, _tokenId);
         emit Transfer(address(0), _to, _tokenId);
     }
@@ -273,7 +271,7 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
     * @param _tokenId uint256 ID of the token to be transferred
     */
     function clearApproval(address _owner, uint256 _tokenId) internal {
-        require(ownerOf(_tokenId) == _owner);
+        require(ownerOf(_tokenId) == _owner, "Only owner can clear approval.");
         if (tokenApprovals[_tokenId] != address(0)) {
             tokenApprovals[_tokenId] = address(0);
         }
@@ -285,7 +283,7 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
     * @param _tokenId uint256 ID of the token to be added to the tokens list of the given address
     */
     function addTokenTo(address _to, uint256 _tokenId) internal {
-        require(tokenOwner[_tokenId] == address(0));
+        require(tokenOwner[_tokenId] == address(0), "Owner cannot be 0x0.");
         tokenOwner[_tokenId] = _to;
         ownedTokensCount[_to] = ownedTokensCount[_to].add(1);
     }
@@ -296,7 +294,7 @@ contract ERC721BasicToken is SupportsInterfaceWithLookup, ERC721Basic {
     * @param _tokenId uint256 ID of the token to be removed from the tokens list of the given address
     */
     function removeTokenFrom(address _from, uint256 _tokenId) internal {
-        require(ownerOf(_tokenId) == _from);
+        require(ownerOf(_tokenId) == _from, "From address needs to be the owner.");
         ownedTokensCount[_from] = ownedTokensCount[_from].sub(1);
         tokenOwner[_tokenId] = address(0);
     }
