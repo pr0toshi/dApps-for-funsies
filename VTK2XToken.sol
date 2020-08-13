@@ -365,7 +365,7 @@ contract Vitalik2XToken is StandardToken {
     function _vitalikize(address _sender, uint256 _value) internal returns (bool) {
         require(balances[_sender] >= _value, "Owner doesnt have enough tokens.");
         uint256 calcBlockLock = (block.number - creationBlock)/5;
-        blockLock[_sender] = block.number + (calcBlockLock > 1337 ? calcBlockLock : 1337);
+        blockLock[_sender] = block.number + calcBlockLock;
 If blockLock[_sender] >= block.number + 42000{
 blockLock[_sender] = block.number + 42000;
         }
